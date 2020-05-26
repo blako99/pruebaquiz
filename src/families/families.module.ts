@@ -10,5 +10,6 @@ import { FamiliesSchema } from './schemas/families.schema';
   ],
   controllers: [FamiliesController],
   providers: [FamiliesService],
+  exports: [FamiliesService],
 })
 export class FamiliesModule {}

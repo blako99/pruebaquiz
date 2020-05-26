@@ -10,5 +10,6 @@ import { CatchesSchema } from './schemas/catches.schema';
   ],
   controllers: [CatchesController],
   providers: [CatchesService],
+  exports: [CatchesService],
 })
 export class CatchesModule {}

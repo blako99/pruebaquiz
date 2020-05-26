@@ -9,9 +9,8 @@ import { Catches } from './interfaces/catches.interface';
 @Injectable()
 export class CatchesService {
   constructor(
-    @InjectModel('Catches') private readonly catchesModel: Model<Catches>,
-  ) //private familiesService: FamiliesService,
-  {}
+    @InjectModel('Catches') private readonly catchesModel: Model<Catches>, //private familiesService: FamiliesService,
+  ) {}
 
   /* async getRandomCatches(): Promise<any> {
     let catches = await this.catchesModel.aggregate([

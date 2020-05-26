@@ -5,9 +5,9 @@ import { FamiliesService } from './families.service';
 export class FamiliesController {
   constructor(private familiesService: FamiliesService) {}
 
-  @Get('/')
+  /* @Get('/')
   async getFamilies() {
     const families = await this.familiesService.getFamilies();
     return families;
-  }
+  } */
 }
