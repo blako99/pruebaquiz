@@ -12,7 +12,8 @@ export class CatchesService {
     @InjectModel('Catches') private readonly catchesModel: Model<Catches>, //private familiesService: FamiliesService,
   ) {}
 
-  /* async getRandomCatches(): Promise<any> {
+  async getRandomCatches(): Promise<any> {
+    //PENDIENTE****
     let catches = await this.catchesModel.aggregate([
       {
         $sample: { size: 2 },
@@ -39,9 +40,10 @@ export class CatchesService {
     ]);
 
     return catches;
-  } */
+  }
 
   async getCatchesWeight(): Promise<Catches[]> {
+    //Devolvemos los pesos de {$size} capturas aleatorias(que tienen peso)
     var capturesRandomWeight = await this.catchesModel.aggregate([
       { $match: { weight: { $exists: true } } },
       { $sample: { size: 2 } },
