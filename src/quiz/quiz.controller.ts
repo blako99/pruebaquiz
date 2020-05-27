@@ -1,17 +1,20 @@
 import { Controller, Get } from '@nestjs/common';
-import { CatchesService } from '../catches/catches.service';
-import { FamiliesService } from '../families/families.service';
+
 import { QuizService } from './quiz.service';
 
 @Controller('quiz')
 export class QuizController {
-  constructor(
-    private catchesService: CatchesService,
-    private familiesService: FamiliesService,
-    private quizService: QuizService,
-  ) {}
+  constructor(private quizService: QuizService) {}
 
-  @Get('/quiz')
+  @Get('/prueba')
+  async prueba() {
+    let a = await this.quizService.prueba();
+
+    return a;
+  }
+}
+
+/* @Get('/quiz')
   async getQuiz(): Promise<any> {
     let userid = '1234'; //usuario fake sustituir por usuario real
 
@@ -64,3 +67,4 @@ export class QuizController {
 function disorganize() {
   return Math.random() - 0.5;
 }
+ */

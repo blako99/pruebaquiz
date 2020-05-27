@@ -1,7 +1,7 @@
-export class CreateCatchesDTO {
-  readonly name: string;
+import { Document } from 'mongoose';
+
+export interface Species extends Document {
   readonly family: string;
-  readonly weight?: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

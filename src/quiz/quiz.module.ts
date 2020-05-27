@@ -1,13 +1,17 @@
 import { Module } from '@nestjs/common';
 import { QuizController } from './quiz.controller';
 import { QuizService } from './quiz.service';
-import { FamiliesService } from '../families/families.service';
-import { CatchesService } from '../catches/catches.service';
-import { FamiliesModule } from '../families/families.module';
-import { CatchesModule } from '../catches/catches.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { SpeciesSchema } from './schemas/species.schema';
+import { CapturasSchema } from './schemas/capturas.schema';
 
 @Module({
-  imports: [CatchesModule, FamiliesModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: 'Capturas', schema: CapturasSchema },
+      { name: 'Species', schema: SpeciesSchema },
+    ]),
+  ],
   controllers: [QuizController],
   providers: [QuizService],
 })

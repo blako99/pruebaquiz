@@ -1,11 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
+import { Model } from 'mongoose';
 var convert = require('convert-units');
+import { Capturas } from './interfaces/capturas.interface';
+import { Species } from './interfaces/species.interface';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class QuizService {
-  constructor() {}
+  constructor(
+    @InjectModel('Species') private readonly speciesModel: Model<Species>,
+    @InjectModel('Capturas') private readonly capturasModel: Model<Capturas>,
+  ) {}
 
-  async whatIsTheFamily(capture, user, fakefamily) {
+  async prueba() {
+    let a = await this.speciesModel.aggregate([{ $sample: { size: 1 } }]);
+
+    let b = await this.capturasModel.aggregate([{ $sample: { size: 1 } }]);
+
+    return { b, a };
+  }
+}
+
+/*  async whatIsTheFamily(capture, user, fakefamily) {
     let question =
       user.lang === 'es' ? '¿Qué especie es?' : 'What is the specie?';
 
@@ -124,4 +140,98 @@ export class QuizService {
 
 function disorganize() {
   return Math.random() - 0.5;
+} */
+
+/* 
+FAMILIAS SERVICE
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Families } from './interfaces/families.interface';
+import { Model } from 'mongoose';
+const mongoose = require('mongoose');
+
+@Injectable()
+export class FamiliesService {
+  constructor(
+    @InjectModel('Families')
+    private readonly familiesModel: Model<Families>,
+  ) {}
+
+  getFakeFamilies(id: string) {
+    //Devuelve 3 especies aleatorias
+    //distintas a la pasada como parámetro
+    let ObjectId = mongoose.Types.ObjectId;
+    let fakeFamilies = this.familiesModel.aggregate([
+      { $match: { _id: { $ne: ObjectId(id) } } },
+      { $sample: { size: 3 } },
+    ]);
+
+    return fakeFamilies;
+  }
 }
+ */
+
+/*
+
+ CATCHES SERVICE
+
+
+ import { Injectable, Req, Catch } from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Catches } from './interfaces/catches.interface';
+import { Capturas } from './../../dist/capturas/interfaces/capturas.interface.d';
+import { Capturas } from './interfaces/capturas.interface';
+@Injectable()
+export class CatchesService {
+  constructor(
+    @InjectModel('Catches') private readonly catchesModel: Model<Catches>, //private familiesService: FamiliesService,
+  ) {}
+
+  async getRandomCatches(): Promise<any> {
+    //Devolvemos las capturas aleatorias(que  no dependen del peso)
+    let catches = await this.catchesModel.aggregate([
+      { $unwind: '$family' },
+      {
+        $sample: { size: 2 },
+      },
+      { $project: { _id: 0, name: 0, weight: 0 } },
+      {
+        $lookup: {
+          from: 'families',
+          as: 'family',
+          let: { family: '$family' },
+          pipeline: [
+            { $match: { $expr: { $and: [{ $eq: ['$_id', '$$family'] }] } } },
+          ],
+        },
+      },
+      { $unwind: '$family' },
+    ]);
+
+    return catches;
+  }
+
+  async getCatchesWeight(): Promise<Catches[]> {
+    //Devolvemos los pesos de {$size} capturas aleatorias(que tienen peso)
+    var capturesRandomWeight = await this.catchesModel.aggregate([
+      { $match: { weight: { $exists: true } } },
+      { $sample: { size: 2 } },
+      {
+        $lookup: {
+          from: 'families',
+          localField: 'family',
+          foreignField: '_id',
+          as: 'family',
+        },
+      },
+      { $project: { _id: 0, weight: 1 } },
+    ]);
+    return capturesRandomWeight;
+  }
+}
+
+
+
+
+ */
