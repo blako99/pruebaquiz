@@ -9,7 +9,7 @@ export class CatchesService {
   ) {}
 
   async getRandomCatches(): Promise<any> {
-    //TODO: IMPLEMENTAR UNWIND
+    //Devolvemos las capturas aleatorias(que  no dependen del peso)
     let catches = await this.catchesModel.aggregate([
       { $unwind: '$family' },
       {
