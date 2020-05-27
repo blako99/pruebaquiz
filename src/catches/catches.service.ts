@@ -2,10 +2,6 @@ import { Injectable, Req, Catch } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Catches } from './interfaces/catches.interface';
-// import { FamiliesService } from '../families/families.service';
-//quitar o cambiar y poner en el controlador
-// var convert = require('convert-units');
-
 @Injectable()
 export class CatchesService {
   constructor(
@@ -13,8 +9,9 @@ export class CatchesService {
   ) {}
 
   async getRandomCatches(): Promise<any> {
-    //PENDIENTE****
+    //TODO: IMPLEMENTAR UNWIND
     let catches = await this.catchesModel.aggregate([
+      { $unwind: '$family' },
       {
         $sample: { size: 2 },
       },
@@ -29,14 +26,7 @@ export class CatchesService {
           ],
         },
       },
-      {
-        $replaceRoot: {
-          newRoot: {
-            $mergeObjects: [{ $arrayElemAt: ['$family', 0] }, '$$ROOT'],
-          },
-        },
-      },
-      { $project: { _id: 1, name: 1 } },
+      { $unwind: '$family' },
     ]);
 
     return catches;

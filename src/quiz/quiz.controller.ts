@@ -32,7 +32,7 @@ export class QuizController {
     //Recorremos las capturas que no dependen del peso para asignarles una pregunta a cada captura
     for (let i in randomCaptures) {
       let fakefamily = await this.familiesService.getFakeFamilies(
-        randomCaptures[i]._id,
+        randomCaptures[i].family._id,
       );
 
       let answer = await this.quizService.whatIsTheFamily(
