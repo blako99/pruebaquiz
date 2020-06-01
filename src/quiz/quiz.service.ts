@@ -93,6 +93,8 @@ export class QuizService {
   async getRandomCatches(): Promise<any> {
     //Devolvemos las capturas aleatorias(que  no dependen del peso)
     let catches = await this.catchModel.aggregate([
+      { $match: { other: { $exists: false } } },
+
       { $sample: { size: 2 } },
 
       {
@@ -122,7 +124,11 @@ export class QuizService {
     var capturesRandomWeight = await this.catchModel.aggregate([
       {
         $match: {
-          $and: [{ weight: { $exists: true } }, { weight: { $gt: 50 } }],
+          $and: [
+            { weight: { $exists: true } },
+            { weight: { $gt: 50 } },
+            { other: { $exists: false } },
+          ],
         },
       },
       { $sample: { size: 2 } },
@@ -160,14 +166,14 @@ export class QuizService {
     ]);
 
     //se comprueba para cada especie fake,si el usuario tiene una acepcion favorita
-    for (let i in fakeFamilies) {
-      let auxFamilies = await this.getUserMeaningSpecie(
+    for (let auxFamily of fakeFamilies) {
+      let meaningSpecie = await this.getUserMeaningSpecie(
         user,
-        fakeFamilies[i]._id,
-        fakeFamilies[i].parentSpecie,
+        auxFamily._id,
+        auxFamily.parentSpecie,
       );
 
-      finalFakeFamilies.push(auxFamilies);
+      finalFakeFamilies.push(meaningSpecie);
     }
 
     return finalFakeFamilies;
