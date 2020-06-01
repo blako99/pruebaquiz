@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Res } from '@nestjs/common';
 
 import { QuizService } from './quiz.service';
 
@@ -9,7 +9,6 @@ export class QuizController {
   @Get()
   async getQuiz(): Promise<any> {
     let quiz = await this.quizService.getQuiz();
-
     return quiz;
   }
 }
