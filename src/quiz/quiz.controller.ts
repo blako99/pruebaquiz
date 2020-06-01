@@ -9,6 +9,7 @@ export class QuizController {
   @Get()
   async getQuiz(): Promise<any> {
     let quiz = await this.quizService.getQuiz();
+
     return quiz;
   }
 }
