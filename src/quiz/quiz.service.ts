@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Model } from 'mongoose';
 var convert = require('convert-units');
-import { Capturas } from './interfaces/capturas.interface';
+import { Catch } from './interfaces/catch.interface';
 import { Species } from './interfaces/species.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Specie_meaning_by_user } from './interfaces/specie_meaning_by_user.interface';
@@ -10,7 +10,7 @@ import { Specie_meaning_by_user } from './interfaces/specie_meaning_by_user.inte
 export class QuizService {
   constructor(
     @InjectModel('Species') private readonly speciesModel: Model<Species>,
-    @InjectModel('Capturas') private readonly capturasModel: Model<Capturas>,
+    @InjectModel('Catch') private readonly catchModel: Model<Catch>,
     @InjectModel('Specie_meaning_by_user')
     private readonly meaningModel: Model<Specie_meaning_by_user>,
   ) {}
@@ -27,17 +27,17 @@ export class QuizService {
 
     let quiz = [];
     let questions = [];
-    let questionCaptures = [];
+    let questionCatches = [];
     let questionWeight = [];
 
     //Obtenemos todas las capturas
-    let randomCaptures = await this.getRandomCatches();
-    let randomCapturesWeight = await this.getCatchesWeight();
+    let randomCatches: Catch[] = await this.getRandomCatches();
+    let randomCatchesWeight: Catch[] = await this.getCatchesWeight();
 
     //Recorremos las capturas que no dependen del peso para asignarles una pregunta a cada captura
-    for (let i in randomCaptures) {
-      let specieId = randomCaptures[i].specie._id;
-      let parentSpecieId = randomCaptures[i].specie.parentSpecie;
+    for (let auxCatch of randomCatches) {
+      let specieId = auxCatch.specie._id;
+      let parentSpecieId = auxCatch.specie.parentSpecie;
       // Obtenemos las 3 especies fake
       let fakefamily = await this.getFakeFamilies(
         user,
@@ -52,18 +52,18 @@ export class QuizService {
       );
       //Se crea la pregunta de la especie correspondiente a la captura
       let question = await this.whatIsTheFamily(
-        randomCaptures[i],
+        auxCatch,
         user,
         fakefamily,
         userMeaningSpecie.family,
       );
-      questionCaptures.push(question);
+      questionCatches.push(question);
     }
 
     //Recorremos las capturas que  dependen del peso para asignarles una pregunta a cada captura
-    for (let i in randomCapturesWeight) {
-      let specieId = randomCaptures[i].specie._id;
-      let parentSpecieId = randomCaptures[i].specie.parentSpecie;
+    for (let auxCatch of randomCatchesWeight) {
+      let specieId = auxCatch.specie._id;
+      let parentSpecieId = auxCatch.specie.parentSpecie;
 
       //Obtenemos la acepcion favorita del usuario o la acepcion principal
       //para mostrarla en el enunciado de la pregunta
@@ -74,7 +74,7 @@ export class QuizService {
       );
       //Se crea la pregunta correspondiente al peso de la captura
       let question = this.whatIsTheWeight(
-        randomCapturesWeight[i],
+        auxCatch,
         user,
         userMeaningSpecie.family,
       );
@@ -82,7 +82,7 @@ export class QuizService {
     }
 
     //juntamos las preguntas
-    questions = questionCaptures.concat(questionWeight);
+    questions = questionCatches.concat(questionWeight);
 
     //las desordenamos
     quiz = questions.sort(disorganize);
@@ -92,7 +92,7 @@ export class QuizService {
 
   async getRandomCatches(): Promise<any> {
     //Devolvemos las capturas aleatorias(que  no dependen del peso)
-    let catches = await this.capturasModel.aggregate([
+    let catches = await this.catchModel.aggregate([
       { $sample: { size: 2 } },
 
       {
@@ -117,9 +117,9 @@ export class QuizService {
     return catches;
   }
 
-  async getCatchesWeight(): Promise<Capturas[]> {
+  async getCatchesWeight(): Promise<Catch[]> {
     //Devolvemos los pesos de {$size} capturas aleatorias(que tienen peso)
-    var capturesRandomWeight = await this.capturasModel.aggregate([
+    var capturesRandomWeight = await this.catchModel.aggregate([
       {
         $match: {
           $and: [{ weight: { $exists: true } }, { weight: { $gt: 50 } }],
@@ -177,7 +177,7 @@ export class QuizService {
     let question =
       user.profile.lang === 'es'
         ? '¿De qué especie es la siguiente captura ?'
-        : 'What is the specie of this capture?';
+        : 'What is the specie of this catch?';
 
     let answers;
 

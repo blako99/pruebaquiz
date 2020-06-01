@@ -1,9 +1,11 @@
 import { Document } from 'mongoose';
+import { Species } from './species.interface';
 
-export interface Capturas extends Document {
+export interface Catch extends Document {
   readonly name: string;
   readonly family: string;
-  weight?: number;
+  readonly weight?: number;
+  readonly specie: Species;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
