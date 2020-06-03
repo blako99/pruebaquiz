@@ -93,10 +93,21 @@ export class QuizService {
   async getRandomCatches(): Promise<any> {
     //Devolvemos las capturas aleatorias(que  no dependen del peso)
     let catches = await this.catchModel.aggregate([
-      { $match: { other: { $exists: false } } },
-
+      //usar limit en esta linea(antes del match) si hay muchas capturas
+      {
+        $match: {
+          $and: [
+            { other: { $exists: false } },
+            { validated: true },
+            { score: { $gte: 4 } },
+            { date: { $gt: new Date('2019-08-01') } },
+            { date: { $lt: new Date('2019-11-01') } },
+          ],
+        },
+      },
+      //usar limit en esta linea(entre match y sample)
+      // si se quieren obtener todas las capturas coincidentes con el match pero limitar las capturas aleatorias
       { $sample: { size: 2 } },
-
       {
         $lookup: {
           from: 'species',
@@ -112,6 +123,8 @@ export class QuizService {
           'specie._id': 1,
           'specie.parentSpecie': 1,
           'specie.family': 1,
+          owner: 1,
+          nickname: 1,
         },
       },
     ]);
@@ -121,6 +134,8 @@ export class QuizService {
 
   async getCatchesWeight(): Promise<Catch[]> {
     //Devolvemos los pesos de {$size} capturas aleatorias(que tienen peso)
+    //NOTA:Usar limit(si es necesario)
+    // en la consulta de la misma forma que en getRandomCatches
     var capturesRandomWeight = await this.catchModel.aggregate([
       {
         $match: {
@@ -128,6 +143,10 @@ export class QuizService {
             { weight: { $exists: true } },
             { weight: { $gt: 50 } },
             { other: { $exists: false } },
+            { validated: true },
+            { score: { $gte: 4 } },
+            { date: { $gt: new Date('2019-08-01') } },
+            { date: { $lt: new Date('2019-11-01') } },
           ],
         },
       },
@@ -143,7 +162,7 @@ export class QuizService {
       },
       { $unwind: '$specie' },
 
-      { $project: { _id: 1, weight: 1, specie: 1 } },
+      { $project: { _id: 1, weight: 1, specie: 1, owner: 1, nickname: 1 } },
     ]);
     return capturesRandomWeight;
   }
