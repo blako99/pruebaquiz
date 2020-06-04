@@ -15,7 +15,22 @@ export class QuizService {
     private readonly meaningModel: Model<Specie_meaning_by_user>,
   ) {}
 
-  async getQuiz() {
+  async getQuiz(numQuestions) {
+    // let numQuestions = 10;
+
+    let numQuestionsWeight = 0;
+
+    let numQuestionsCatches = 0;
+
+    if (numQuestions === 1) {
+      let randomQuestion = Math.round(Math.random());
+
+      randomQuestion ? (numQuestionsWeight = 1) : (numQuestionsCatches = 1);
+    } else {
+      numQuestionsWeight = 3;
+      numQuestionsCatches = numQuestions - numQuestionsWeight;
+    }
+
     let user = {
       _id: 'oQyyn36oKp28hSxtn',
       profile: { lang: 'en', systemMedition: 2 },
@@ -28,11 +43,17 @@ export class QuizService {
     let quiz = [];
     let questions = [];
     let questionCatches = [];
-    let questionWeight = [];
+    let questionsWeight = [];
+    let randomCatches: Catch[] = [];
+    let randomCatchesWeight: Catch[] = [];
 
     //Obtenemos todas las capturas
-    let randomCatches: Catch[] = await this.getRandomCatches();
-    let randomCatchesWeight: Catch[] = await this.getCatchesWeight();
+    if (numQuestionsCatches) {
+      randomCatches = await this.getRandomCatches(numQuestionsCatches);
+    }
+    if (numQuestionsWeight) {
+      randomCatchesWeight = await this.getCatchesWeight(numQuestionsWeight);
+    }
 
     //Recorremos las capturas que no dependen del peso para asignarles una pregunta a cada captura
     for (let auxCatch of randomCatches) {
@@ -78,11 +99,11 @@ export class QuizService {
         user,
         userMeaningSpecie.family,
       );
-      questionWeight.push(question);
+      questionsWeight.push(question);
     }
 
     //juntamos las preguntas
-    questions = questionCatches.concat(questionWeight);
+    questions = questionCatches.concat(questionsWeight);
 
     //las desordenamos
     quiz = questions.sort(disorganize);
@@ -90,14 +111,13 @@ export class QuizService {
     return quiz;
   }
 
-  async getRandomCatches(): Promise<any> {
+  async getRandomCatches(numQuestions): Promise<any> {
     //Devolvemos las capturas aleatorias(que  no dependen del peso)
     let catches = await this.catchModel.aggregate([
       //usar limit en esta linea(antes del match) si hay muchas capturas
       {
         $match: {
           $and: [
-            { other: { $exists: false } },
             { validated: true },
             { score: { $gte: 4 } },
             { date: { $gt: new Date('2019-08-01') } },
@@ -105,9 +125,7 @@ export class QuizService {
           ],
         },
       },
-      //usar limit en esta linea(entre match y sample)
-      // si se quieren obtener todas las capturas coincidentes con el match pero limitar las capturas aleatorias
-      { $sample: { size: 2 } },
+      { $limit: 1000 },
       {
         $lookup: {
           from: 'species',
@@ -116,6 +134,12 @@ export class QuizService {
           as: 'specie',
         },
       },
+      { $match: { 'specie.other': { $exists: false } } },
+
+      //usar limit en esta linea(entre match y sample)
+      // si se quieren obtener todas las capturas coincidentes con el match pero limitar las capturas aleatorias
+      { $sample: { size: numQuestions } },
+
       { $unwind: '$specie' },
       {
         $project: {
@@ -132,7 +156,7 @@ export class QuizService {
     return catches;
   }
 
-  async getCatchesWeight(): Promise<Catch[]> {
+  async getCatchesWeight(numQuestions): Promise<Catch[]> {
     //Devolvemos los pesos de {$size} capturas aleatorias(que tienen peso)
     //NOTA:Usar limit(si es necesario)
     // en la consulta de la misma forma que en getRandomCatches
@@ -142,7 +166,6 @@ export class QuizService {
           $and: [
             { weight: { $exists: true } },
             { weight: { $gt: 50 } },
-            { other: { $exists: false } },
             { validated: true },
             { score: { $gte: 4 } },
             { date: { $gt: new Date('2019-08-01') } },
@@ -150,8 +173,7 @@ export class QuizService {
           ],
         },
       },
-      { $sample: { size: 2 } },
-
+      { $limit: 1000 },
       {
         $lookup: {
           from: 'species',
@@ -160,6 +182,10 @@ export class QuizService {
           as: 'specie',
         },
       },
+      { $match: { 'specie.other': { $exists: false } } },
+
+      { $sample: { size: numQuestions } },
+
       { $unwind: '$specie' },
 
       { $project: { _id: 1, weight: 1, specie: 1, owner: 1, nickname: 1 } },
@@ -169,17 +195,19 @@ export class QuizService {
   async getFakeFamilies(user, specieId, parentSpecieId) {
     //Devuelve 3 especies aleatorias
     //Distintas a la pasada como parámetro
-
+    //tarda 0.012
     let finalFakeFamilies = [];
     let fakeFamilies = await this.speciesModel.aggregate([
       {
         $match: {
           $and: [
+            { other: { $exists: false } },
             { _id: { $ne: specieId } },
             { parentSpecie: { $ne: parentSpecieId } },
           ],
         },
       },
+
       { $sample: { size: 3 } },
       { $project: { _id: 1, family: 1, parentSpecie: 1 } },
     ]);
@@ -212,7 +240,7 @@ export class QuizService {
       correctAnswer: true,
     });
     answers = fakefamily.sort(disorganize);
-    return { question, answers }; //ver como introducir la respuesta segun el idioma
+    return { question, answers };
   }
 
   whatIsTheWeight(capture, user, userMeaningSpecie) {

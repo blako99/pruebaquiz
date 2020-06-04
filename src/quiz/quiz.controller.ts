@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Res, Param } from '@nestjs/common';
 
 import { QuizService } from './quiz.service';
 
@@ -6,9 +6,9 @@ import { QuizService } from './quiz.service';
 export class QuizController {
   constructor(private quizService: QuizService) {}
 
-  @Get()
-  async getQuiz(): Promise<any> {
-    let quiz = await this.quizService.getQuiz();
+  @Get(':numQuestions')
+  async getQuiz(@Param('numQuestions') numQuestions: string): Promise<any> {
+    let quiz = await this.quizService.getQuiz(parseInt(numQuestions));
 
     return quiz;
   }
